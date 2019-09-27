@@ -1,6 +1,7 @@
-const http = require('http');
+const path = require('path');
 const express = require('express');
 const compress = require('compression');
+const serveStatic = require('serve-static');
 const logger = require('./lib/logger');
 const NotFound = require('./lib/not-found');
 const usersRouter = require('./routes/users');
@@ -18,7 +19,9 @@ let notFoundHandler = (err, req, res, next) => {
 }
 
 app.use(logger);
-app.use(compress({threshold: 0}))
+app.use(compress(/*{threshold: 0}*/));
+
+app.use(serveStatic(path.join(__dirname, './public')));
 
 app.use('/users', usersRouter);
 app.use('/emails', emailsRouter);
