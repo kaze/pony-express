@@ -5,6 +5,7 @@ const multer = require('multer');
 const emails = require('../fixtures/users.json');
 const generateId = require('../lib/generate-id');
 const NotFound = require('../lib/not-found');
+const requireAuth = require('../lib/require-auth');
 
 let upload = multer({dest: path.join(__dirname, '../uploads')});
 
@@ -13,9 +14,9 @@ let getEmailsRoute = (req, res) => {
 }
 
 let getEmailRoute = (req, res) => {
-  let email = emails.find(e => e.id.toString() === req.params.id)
+  let email = emails.find(e => e.id.toString() === req.params.id);
   if (!email) { throw new NotFound(); }
-  res.send(email)
+  res.send(email);
 }
 
 let createEmailRoute = async (req, res) => {
@@ -43,7 +44,9 @@ let deleteEmailRoute = (req, res) => {
 
 let jsonBodyParser = bodyParser.json({limit: '100kb'});
 
-let emailsRouter = express.Router()
+let emailsRouter = express.Router();
+
+emailsRouter.use(requireAuth);
 
 emailsRouter.get('/', getEmailsRoute);
 emailsRouter.get('/:id', getEmailRoute);
