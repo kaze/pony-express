@@ -1,7 +1,8 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const emails = require('../fixtures/users.json');
-const readBody = require('../lib/read-body');
 const generateId = require('../lib/generate-id');
+const NotFound = require('../lib/not-found');
 
 let getEmailsRoute = (req, res) => {
   res.send(emails);
@@ -9,51 +10,40 @@ let getEmailsRoute = (req, res) => {
 
 let getEmailRoute = (req, res) => {
   let email = emails.find(e => e.id.toString() === req.params.id)
+  if (!email) { throw new NotFound(); }
   res.send(email)
 }
 
 let createEmailRoute = async (req, res) => {
-  try {
-    readBody(req).then((body) => {
-      let newEmail = {...JSON.parse(body), id: generateId()};
-      emails.push(newEmail);
-      res.status(201);
-      res.send(newEmail);
-    });
-  } catch (e) {
-    console.log(e);
-    res.status(500);
-    res.send({message: e.message});
-  }
+    let newEmail = {...req.body, id: generateId()};
+    emails.push(newEmail);
+    res.status(201);
+    res.send(newEmail);
 }
 
 let updateEmailRoute = async (req, res) => {
-  try {
-    readBody(req).then((body) => {
-      let email = emails.find((e) => e.id.toString() === req.params.id);
-      Object.assign(email, JSON.parse(body));
-      res.status(200);
-      res.send(email);
-    });
-  } catch (e) {
-    console.log(e);
-    res.status(500);
-    res.send({message: e.message});
-  }
+    let email = emails.find((e) => e.id.toString() === req.params.id);
+    if (!email) { throw new NotFound(); }
+    Object.assign(email, req.body);
+    res.status(200);
+    res.send(email);
 }
 
 let deleteEmailRoute = (req, res) => {
   let index = emails.findIndex((e) => e.id.toString() === req.params.id);
+  if (!index) { throw new NotFound(); }
   emails.splice(index, 1);
   res.sendStatus(200);
 }
+
+let jsonBodyParser = bodyParser.json({limit: '100kb'});
 
 let emailsRouter = express.Router()
 
 emailsRouter.get('/', getEmailsRoute);
 emailsRouter.get('/:id', getEmailRoute);
-emailsRouter.post('/', createEmailRoute);
-emailsRouter.patch('/:id', updateEmailRoute);
+emailsRouter.post('/', jsonBodyParser, createEmailRoute);
+emailsRouter.patch('/:id', jsonBodyParser, updateEmailRoute);
 emailsRouter.delete('/:id', deleteEmailRoute);
 
 module.exports = emailsRouter;
