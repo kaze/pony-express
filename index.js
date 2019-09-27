@@ -21,7 +21,8 @@ let notFoundHandler = (err, req, res, next) => {
 app.use(logger);
 app.use(compress(/*{threshold: 0}*/));
 
-app.use(serveStatic(path.join(__dirname, './public')));
+app.use(serveStatic(path.join(__dirname, 'public')));
+app.use('/uploads', serveStatic(path.join(__dirname, 'uploads')));
 
 app.use('/users', usersRouter);
 app.use('/emails', emailsRouter);
